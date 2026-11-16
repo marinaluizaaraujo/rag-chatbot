@@ -1,0 +1,801 @@
+Referência
+useEffect(setup, dependencies?) 
+Chame a função useEffectno nível superior do seu componente para declarar um efeito:
+
+import { useState, useEffect } from 'react';
+import { createConnection } from './chat.js';
+
+function ChatRoom({ roomId }) {
+  const [serverUrl, setServerUrl] = useState('https://localhost:1234');
+
+  useEffect(() => {
+    const connection = createConnection(serverUrl, roomId);
+    connection.connect();
+    return () => {
+      connection.disconnect();
+    };
+  }, [serverUrl, roomId]);
+  // ...
+}
+Veja mais exemplos abaixo.
+
+Parâmetros
+setupA função com a lógica do seu efeito. Sua função de configuração também pode, opcionalmente, retornar uma função de limpeza . Quando seu componente é confirmado (commit ), o React executa sua função de configuração. Após cada commit com dependências alteradas, o React primeiro executa a função de limpeza (se você a forneceu) com os valores antigos e, em seguida, executa sua função de configuração com os novos valores. Depois que seu componente é removido do DOM, o React executa sua função de limpeza.
+
+Opcional dependencies : A lista de todos os valores reativos referenciados dentro do setupcódigo. Valores reativos incluem props, state e todas as variáveis ​​e funções declaradas diretamente no corpo do seu componente. Se o seu linter estiver configurado para React , ele verificará se cada valor reativo está especificado corretamente como uma dependência. A lista de dependências deve ter um número constante de itens e ser escrita inline, como em `<dependency>` [dep1, dep2, dep3]. O React comparará cada dependência com seu valor anterior usando a Object.iscomparação. Se você omitir este argumento, seu Effect será executado novamente após cada commit do componente. Veja a diferença entre passar um array de dependências, um array vazio e nenhuma dependência.
+
+Retorna
+useEffectretornos undefined.
+
+Advertências
+useEffect`is` é um Hook, portanto, você só pode chamá-lo no nível superior do seu componente ou em seus próprios Hooks. Você não pode chamá-lo dentro de loops ou condições. Se precisar disso, extraia um novo componente e mova o estado para ele.
+
+Se você não está tentando sincronizar com algum sistema externo,  provavelmente não precisa de um efeito.
+
+Quando o Modo Estrito está ativado, o React executa um ciclo extra de configuração e limpeza, exclusivo para desenvolvimento, antes da primeira configuração real. Este é um teste de estresse que garante que a lógica de limpeza "espelhe" a lógica de configuração e que interrompa ou desfaça qualquer ação que a configuração esteja executando. Se isso causar algum problema, implemente a função de limpeza.
+
+Se algumas das suas dependências forem objetos ou funções definidas dentro do componente, existe o risco de que o efeito seja executado com mais frequência do que o necessário. Para corrigir isso, remova as dependências de objetos e funções desnecessárias . Você também pode extrair as atualizações de estado e a lógica não reativa para fora do efeito.
+
+Se o seu efeito não foi causado por uma interação (como um clique), o React geralmente permite que o navegador renderize a tela atualizada antes de executar o efeito. Se o seu efeito estiver realizando algo visual (por exemplo, posicionando uma dica de ferramenta) e o atraso for perceptível (por exemplo, piscando), substitua useEffectpor useLayoutEffect.
+
+Se o seu efeito for causado por uma interação (como um clique), o React pode executá-lo antes que o navegador renderize a tela atualizada . Isso garante que o resultado do efeito possa ser observado pelo sistema de eventos. Normalmente, isso funciona como esperado. No entanto, se você precisar adiar a execução para depois da renderização, como em um evento `draw` alert(), você pode usar `useEffect` setTimeout. Consulte reactwg/react-18/128 para obter mais informações.
+
+Mesmo que seu efeito tenha sido causado por uma interação (como um clique), o React pode permitir que o navegador redesenhe a tela antes de processar as atualizações de estado dentro do seu efeito. Normalmente, isso funciona como esperado. No entanto, se você precisar impedir que o navegador redesenhe a tela, você precisa substituir useEffectpor useLayoutEffect.
+
+Os efeitos são executados apenas no cliente. Eles não são executados durante a renderização no servidor.
+
+Uso
+Conectando-se a um sistema externo
+Alguns componentes precisam permanecer conectados à rede, a alguma API do navegador ou a uma biblioteca de terceiros enquanto são exibidos na página. Esses sistemas não são controlados pelo React, por isso são chamados de externos.
+
+Para conectar seu componente a um sistema externo, faça a seguinte chamada useEffectno nível superior do seu componente:
+
+import { useState, useEffect } from 'react';
+import { createConnection } from './chat.js';
+
+function ChatRoom({ roomId }) {
+  const [serverUrl, setServerUrl] = useState('https://localhost:1234');
+
+  useEffect(() => {
+  	const connection = createConnection(serverUrl, roomId);
+    connection.connect();
+  	return () => {
+      connection.disconnect();
+  	};
+  }, [serverUrl, roomId]);
+  // ...
+}
+Você precisa passar dois argumentos para useEffect:
+
+Uma função de configuração com código de instalação que se conecta a esse sistema.
+Deve retornar uma função de limpeza com um código de limpeza que desconecte o sistema.
+Uma lista de dependências incluindo todos os valores do seu componente usados ​​dentro dessas funções.
+O React chama suas funções de configuração e limpeza sempre que necessário, o que pode acontecer várias vezes:
+
+Seu código de configuração é executado quando seu componente é adicionado à página (montado) .
+Após cada commit do seu componente onde as dependências foram alteradas:
+Primeiro, seu código de limpeza é executado com as propriedades e o estado antigos.
+Em seguida, seu código de configuração é executado com as novas propriedades e estado.
+Seu código de limpeza é executado uma última vez depois que seu componente é removido da página (desmontado).
+Vamos ilustrar essa sequência com o exemplo acima.
+
+Quando o ChatRoomcomponente acima for adicionado à página, ele se conectará à sala de bate-papo com o `id` inicial serverUrle o `name` roomId. Se o `id` serverUrlou o roomId`name` forem alterados como resultado de um commit (por exemplo, se o usuário selecionar uma sala de bate-papo diferente em um menu suspenso), seu efeito se desconectará da sala anterior e se conectará à próxima. Quando o ChatRoomcomponente for removido da página, seu efeito se desconectará pela última vez.
+
+Para ajudar você a encontrar erros, em desenvolvimento, o React executa `setup` e `cleanup` uma vez a mais antes do ` setup` . Este é um teste de estresse que verifica se a lógica do seu `Effect` está implementada corretamente. Se isso causar problemas visíveis, sua função de `cleanup` está com alguma lógica faltando. A função de `cleanup` deve interromper ou desfazer o que a função de `setup` estava fazendo. A regra geral é que o usuário não deve ser capaz de distinguir entre o `setup` sendo chamado uma única vez (como em produção) e uma sequência `setup → cleanup → setup` (como em desenvolvimento). Veja soluções comuns.
+
+Tente escrever cada Efeito como um processo independente e pense em um único ciclo de configuração/limpeza por vez. Não deve importar se o seu componente está sendo montado, atualizado ou desmontado. Quando a sua lógica de limpeza "espelha" corretamente a lógica de configuração, o seu Efeito se torna resiliente à execução de configurações e limpezas quantas vezes forem necessárias.
+
+Observação
+Um efeito permite que você mantenha seu componente sincronizado com algum sistema externo (como um serviço de bate-papo). Aqui, sistema externo significa qualquer trecho de código que não seja controlado pelo React, como:
+
+Um temporizador gerenciado com setInterval()e clearInterval().
+Uma assinatura de evento usando window.addEventListener()e window.removeEventListener().
+Uma biblioteca de animação de terceiros com uma API semelhante animation.start()a esta animation.reset().
+Se você não estiver se conectando a nenhum sistema externo, provavelmente não precisa de um efeito.
+
+Exemplos de conexão a um sistema externo
+1. Conectando-se a um servidor de bate- papo
+2. Ouvindo um evento global do navegador
+3. Acionando uma animação
+4. Controlando uma caixa de diálogo modal
+5. Rastreamento da visibilidade do elemento
+
+
+Exemplo 1 de 5 :Conectando-se a um servidor de bate-papo
+Neste exemplo, o ChatRoomcomponente usa um Efeito para se manter conectado a um sistema externo definido em chat.js. Pressione “Abrir chat” para que o ChatRoomcomponente apareça. Este ambiente de teste é executado em modo de desenvolvimento, portanto, há um ciclo extra de conexão e desconexão, conforme explicado aqui. Experimente alterar o roomIde serverUrlusar o menu suspenso e a entrada e veja como o Efeito se reconecta ao chat. Pressione “Fechar chat” para ver o Efeito se desconectar pela última vez.
+
+
+
+
+import { useState, useEffect } from 'react';
+import { createConnection } from './chat.js';
+
+function ChatRoom({ roomId }) {
+  const [serverUrl, setServerUrl] = useState('https://localhost:1234');
+
+  useEffect(() => {
+    const connection = createConnection(serverUrl, roomId);
+    connection.connect();
+    return () => {
+      connection.disconnect();
+    };
+  }, [roomId, serverUrl]);
+
+  return (
+    <>
+      <label>
+        Server URL:{' '}
+        <input
+          value={serverUrl}
+          onChange={e => setServerUrl(e.target.value)}
+        />
+      </label>
+      <h1>Welcome to the {roomId} room!</h1>
+    </>
+  );
+}
+
+export default function App() {
+  const [roomId, setRoomId] = useState('general');
+  const [show, setShow] = useState(false);
+  return (
+    <>
+      <label>
+        Choose the chat room:{' '}
+        <select
+
+
+
+Efeitos de encapsulamento em Hooks personalizados
+Os efeitos são uma "válvula de escape": você os usa quando precisa "sair do React" e quando não há uma solução integrada melhor para o seu caso de uso. Se você se vê frequentemente precisando escrever efeitos manualmente, geralmente é um sinal de que precisa extrair alguns Hooks personalizados para comportamentos comuns dos quais seus componentes dependem.
+
+Por exemplo, este useChatRoomHook personalizado "oculta" a lógica do seu Effect por trás de uma API mais declarativa:
+
+function useChatRoom({ serverUrl, roomId }) {
+  useEffect(() => {
+    const options = {
+      serverUrl: serverUrl,
+      roomId: roomId
+    };
+    const connection = createConnection(options);
+    connection.connect();
+    return () => connection.disconnect();
+  }, [roomId, serverUrl]);
+}
+Então você pode usá-lo em qualquer componente desta forma:
+
+function ChatRoom({ roomId }) {
+  const [serverUrl, setServerUrl] = useState('https://localhost:1234');
+
+  useChatRoom({
+    roomId: roomId,
+    serverUrl: serverUrl
+  });
+  // ...
+Existem também muitos Hooks personalizados excelentes para todas as finalidades disponíveis no ecossistema React.
+
+Saiba mais sobre como encapsular efeitos em Hooks personalizados.
+
+Exemplos de encapsulamento de efeitos em Hooks personalizados
+1. Gancho personalizado​useChatRoom
+2. Gancho personalizado​useWindowListener
+3. Gancho personalizado​useIntersectionObserver
+
+
+Exemplo 1 de 3 :useChatRoomGancho personalizado
+Este exemplo é idêntico a um dos exemplos anteriores, mas a lógica foi extraída para um Hook personalizado.
+
+
+
+
+import { useState } from 'react';
+import { useChatRoom } from './useChatRoom.js';
+
+function ChatRoom({ roomId }) {
+  const [serverUrl, setServerUrl] = useState('https://localhost:1234');
+
+  useChatRoom({
+    roomId: roomId,
+    serverUrl: serverUrl
+  });
+
+  return (
+    <>
+      <label>
+        Server URL:{' '}
+        <input
+          value={serverUrl}
+          onChange={e => setServerUrl(e.target.value)}
+        />
+      </label>
+      <h1>Welcome to the {roomId} room!</h1>
+    </>
+  );
+}
+
+export default function App() {
+  const [roomId, setRoomId] = useState('general');
+  const [show, setShow] = useState(false);
+  return (
+    <>
+      <label>
+        Choose the chat room:{' '}
+        <select
+          value={roomId}
+          onChange={e => setRoomId(e.target.value)}
+        >
+
+
+
+Controlando um widget que não é React
+Às vezes, você deseja manter um sistema externo sincronizado com alguma propriedade ou estado do seu componente.
+
+Por exemplo, se você tiver um widget de mapa de terceiros ou um componente de reprodutor de vídeo escrito sem React, poderá usar um Effect para chamar métodos nele que façam com que seu estado corresponda ao estado atual do seu componente React. Este Effect cria uma instância de uma MapWidgetclasse definida em ` componentDidMount` map-widget.js. Quando você altera a zoomLevelpropriedade `state` do Mapcomponente, o Effect chama o método ` setZoom()onSincronized` na instância da classe para mantê-la sincronizada.
+
+
+
+
+import { useRef, useEffect } from 'react';
+import { MapWidget } from './map-widget.js';
+
+export default function Map({ zoomLevel }) {
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+
+  useEffect(() => {
+    if (mapRef.current === null) {
+      mapRef.current = new MapWidget(containerRef.current);
+    }
+
+    const map = mapRef.current;
+    map.setZoom(zoomLevel);
+  }, [zoomLevel]);
+
+  return (
+    <div
+      style={{ width: 200, height: 200 }}
+      ref={containerRef}
+    />
+  );
+}
+
+
+
+Neste exemplo, uma função de limpeza não é necessária porque a MapWidgetclasse gerencia apenas o nó DOM que lhe foi passado. Depois que o Mapcomponente React é removido da árvore, tanto o nó DOM quanto a MapWidgetinstância da classe serão coletados automaticamente pelo coletor de lixo do mecanismo JavaScript do navegador.
+
+Obtendo dados com efeitos
+Você pode usar um Effect para buscar dados para o seu componente. Observe que, se você usa um framework, usar o mecanismo de busca de dados do framework será muito mais eficiente do que escrever Effects manualmente.
+
+Se você quiser buscar dados de um Efeito manualmente, seu código pode ser semelhante a este:
+
+import { useState, useEffect } from 'react';
+import { fetchBio } from './api.js';
+
+export default function Page() {
+  const [person, setPerson] = useState('Alice');
+  const [bio, setBio] = useState(null);
+
+  useEffect(() => {
+    let ignore = false;
+    setBio(null);
+    fetchBio(person).then(result => {
+      if (!ignore) {
+        setBio(result);
+      }
+    });
+    return () => {
+      ignore = true;
+    };
+  }, [person]);
+
+  // ...
+Observe a ignorevariável que é inicializada com falsee definida como truedurante a limpeza. Isso garante que seu código não sofra com "condições de corrida": as respostas da rede podem chegar em uma ordem diferente daquela em que você as enviou.
+
+
+
+
+
+import { useState, useEffect } from 'react';
+import { fetchBio } from './api.js';
+
+export default function Page() {
+  const [person, setPerson] = useState('Alice');
+  const [bio, setBio] = useState(null);
+  useEffect(() => {
+    let ignore = false;
+    setBio(null);
+    fetchBio(person).then(result => {
+      if (!ignore) {
+        setBio(result);
+      }
+    });
+    return () => {
+      ignore = true;
+    }
+  }, [person]);
+
+  return (
+    <>
+      <select value={person} onChange={e => {
+        setPerson(e.target.value);
+      }}>
+        <option value="Alice">Alice</option>
+        <option value="Bob">Bob</option>
+        <option value="Taylor">Taylor</option>
+      </select>
+      <hr />
+      <p><i>{bio ?? 'Loading...'}</i></p>
+    </>
+  );
+}
+
+
+
+Você também pode reescrever usando a sintaxe async/await , mas ainda precisa fornecer uma função de limpeza:
+
+
+
+
+
+import { useState, useEffect } from 'react';
+import { fetchBio } from './api.js';
+
+export default function Page() {
+  const [person, setPerson] = useState('Alice');
+  const [bio, setBio] = useState(null);
+  useEffect(() => {
+    async function startFetching() {
+      setBio(null);
+      const result = await fetchBio(person);
+      if (!ignore) {
+        setBio(result);
+      }
+    }
+
+    let ignore = false;
+    startFetching();
+    return () => {
+      ignore = true;
+    }
+  }, [person]);
+
+  return (
+    <>
+      <select value={person} onChange={e => {
+        setPerson(e.target.value);
+      }}>
+        <option value="Alice">Alice</option>
+        <option value="Bob">Bob</option>
+        <option value="Taylor">Taylor</option>
+      </select>
+      <hr />
+      <p><i>{bio ?? 'Loading...'}</i></p>
+    </>
+  );
+}
+
+
+
+Escrever a busca de dados diretamente nos Efeitos torna-se repetitivo e dificulta a adição de otimizações como cache e renderização no servidor posteriormente. É mais fácil usar um Hook personalizado — seja ele próprio ou mantido pela comunidade.
+
+Análise Detalhada
+Quais são as boas alternativas à busca de dados no Effects?
+
+Especificando dependências reativas
+Note que você não pode "escolher" as dependências do seu Effect. Todo valor reativo usado pelo código do seu Effect deve ser declarado como uma dependência. A lista de dependências do seu Effect é determinada pelo código ao redor:
+
+function ChatRoom({ roomId }) { // This is a reactive value
+  const [serverUrl, setServerUrl] = useState('https://localhost:1234'); // This is a reactive value too
+
+  useEffect(() => {
+    const connection = createConnection(serverUrl, roomId); // This Effect reads these reactive values
+    connection.connect();
+    return () => connection.disconnect();
+  }, [serverUrl, roomId]); // ✅ So you must specify them as dependencies of your Effect
+  // ...
+}
+Se um dos parâmetros ( serverUrlou ) roomIdfor alterado, seu efeito se reconectará ao chat usando os novos valores.
+
+Valores reativos incluem props e todas as variáveis ​​e funções declaradas diretamente dentro do seu componente. ComoroomIdeserverUrlsão valores reativos, você não pode removê-los das dependências. Se você tentar omiti-los e seu linter estiver configurado corretamente para React, o linter sinalizará isso como um erro que precisa ser corrigido.
+
+function ChatRoom({ roomId }) {
+  const [serverUrl, setServerUrl] = useState('https://localhost:1234');
+
+  useEffect(() => {
+    const connection = createConnection(serverUrl, roomId);
+    connection.connect();
+    return () => connection.disconnect();
+  }, []); // 🔴 React Hook useEffect has missing dependencies: 'roomId' and 'serverUrl'
+  // ...
+}
+Para remover uma dependência, você precisa "provar" ao linter que ela não precisa ser uma dependência. Por exemplo, você pode mover serverUrlo componente para fora do seu componente para provar que ele não é reativo e não mudará em renderizações subsequentes:
+
+const serverUrl = 'https://localhost:1234'; // Not a reactive value anymore
+
+function ChatRoom({ roomId }) {
+  useEffect(() => {
+    const connection = createConnection(serverUrl, roomId);
+    connection.connect();
+    return () => connection.disconnect();
+  }, [roomId]); // ✅ All dependencies declared
+  // ...
+}
+Agora que serverUrlnão se trata de um valor reativo (e não pode ser alterado em uma nova renderização), ele não precisa ser uma dependência. Se o código do seu efeito não usa nenhum valor reativo, sua lista de dependências deve estar vazia ( []):
+
+const serverUrl = 'https://localhost:1234'; // Not a reactive value anymore
+const roomId = 'music'; // Not a reactive value anymore
+
+function ChatRoom() {
+  useEffect(() => {
+    const connection = createConnection(serverUrl, roomId);
+    connection.connect();
+    return () => connection.disconnect();
+  }, []); // ✅ All dependencies declared
+  // ...
+}
+Um efeito com dependências vazias não é executado novamente quando qualquer uma das propriedades ou o estado do seu componente é alterado.
+
+Armadilha
+Se você já possui um código-fonte, pode ter alguns efeitos que suprimem o linter, como este:
+
+useEffect(() => {
+  // ...
+  // 🔴 Avoid suppressing the linter like this:
+  // eslint-ignore-next-line react-hooks/exhaustive-deps
+}, []);
+Quando as dependências não correspondem ao código, existe um alto risco de introduzir erros. Ao suprimir o linter, você "mente" para o React sobre os valores dos quais seu Effect depende. Em vez disso, prove que eles são desnecessários.
+
+Exemplos de passagem de dependências reativas
+1. Passando um array de dependências
+2. Passando um array de dependências vazio
+3. Não passar nenhum array de dependências .
+
+
+Exemplo 1 de 3 :Passando um array de dependências
+Se você especificar as dependências, seu efeito será executado após o commit inicial e após commits com dependências alteradas.
+
+useEffect(() => {
+  // ...
+}, [a, b]); // Runs again if a or b are different
+No exemplo abaixo, `room` serverUrle ` server` roomIdsão valores reativos, portanto, ambos devem ser especificados como dependências. Como resultado, selecionar uma sala diferente no menu suspenso ou editar o campo de URL do servidor faz com que o chat se reconecte. No entanto, como `server` messagenão é usado no efeito (e, portanto, não é uma dependência), editar a mensagem não reconecta ao chat.
+
+
+
+
+import { useState, useEffect } from 'react';
+import { createConnection } from './chat.js';
+
+function ChatRoom({ roomId }) {
+  const [serverUrl, setServerUrl] = useState('https://localhost:1234');
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const connection = createConnection(serverUrl, roomId);
+    connection.connect();
+    return () => {
+      connection.disconnect();
+    };
+  }, [serverUrl, roomId]);
+
+  return (
+    <>
+      <label>
+        Server URL:{' '}
+        <input
+          value={serverUrl}
+          onChange={e => setServerUrl(e.target.value)}
+        />
+      </label>
+      <h1>Welcome to the {roomId} room!</h1>
+      <label>
+        Your message:{' '}
+        <input value={message} onChange={e => setMessage(e.target.value)} />
+      </label>
+    </>
+  );
+}
+
+export default function App() {
+  const [show, setShow] = useState(false);
+  const [roomId, setRoomId] = useState('general');
+
+
+
+Atualizando o estado com base no estado anterior de um efeito.
+Ao tentar atualizar o estado com base no estado anterior de um Effect, você pode se deparar com um problema:
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCount(count + 1); // You want to increment the counter every second...
+    }, 1000)
+    return () => clearInterval(intervalId);
+  }, [count]); // 🚩 ... but specifying `count` as a dependency always resets the interval.
+  // ...
+}
+Como countse trata de um valor reativo, ele precisa ser especificado na lista de dependências. No entanto, isso faz com que o efeito seja limpo e configurado novamente a cada countalteração. Isso não é o ideal.
+
+Para corrigir isso, passe o c => c + 1atualizador de estado para setCount:
+
+
+
+
+
+
+import { useState, useEffect } from 'react';
+
+export default function Counter() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCount(c => c + 1); // ✅ Pass a state updater
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, []); // ✅ Now count is not a dependency
+
+  return <h1>{count}</h1>;
+}
+
+
+Agora que você está passando `initialize` c => c + 1em vez de `initialize` count + 1, seu efeito não precisa mais depender de `initialize` count. Como resultado dessa correção, ele não precisará limpar e configurar o intervalo novamente sempre que houver countalterações.
+
+Remover dependências de objetos desnecessárias
+Se o seu efeito depender de um objeto ou função criada durante a renderização, ele poderá ser executado com muita frequência. Por exemplo, este efeito se reconecta após cada commit porque o optionsobjeto é diferente a cada renderização:
+
+const serverUrl = 'https://localhost:1234';
+
+function ChatRoom({ roomId }) {
+  const [message, setMessage] = useState('');
+
+  const options = { // 🚩 This object is created from scratch on every re-render
+    serverUrl: serverUrl,
+    roomId: roomId
+  };
+
+  useEffect(() => {
+    const connection = createConnection(options); // It's used inside the Effect
+    connection.connect();
+    return () => connection.disconnect();
+  }, [options]); // 🚩 As a result, these dependencies are always different on a commit
+  // ...
+Evite usar um objeto criado durante a renderização como dependência. Em vez disso, crie o objeto dentro do efeito:
+
+
+
+
+import { useState, useEffect } from 'react';
+import { createConnection } from './chat.js';
+
+const serverUrl = 'https://localhost:1234';
+
+function ChatRoom({ roomId }) {
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const options = {
+      serverUrl: serverUrl,
+      roomId: roomId
+    };
+    const connection = createConnection(options);
+    connection.connect();
+    return () => connection.disconnect();
+  }, [roomId]);
+
+  return (
+    <>
+      <h1>Welcome to the {roomId} room!</h1>
+      <input value={message} onChange={e => setMessage(e.target.value)} />
+    </>
+  );
+}
+
+export default function App() {
+  const [roomId, setRoomId] = useState('general');
+  return (
+    <>
+      <label>
+        Choose the chat room:{' '}
+        <select
+          value={roomId}
+          onChange={e => setRoomId(e.target.value)}
+        >
+
+
+
+Agora que você criou o optionsobjeto dentro do Effect, o próprio Effect depende apenas da roomIdstring.
+
+Com essa correção, digitar no campo de entrada não reconecta o chat. Ao contrário de um objeto que é recriado, uma string como essa roomIdnão muda a menos que você a defina com outro valor. Leia mais sobre como remover dependências.
+
+Remover dependências de funções desnecessárias
+Se o seu efeito depender de um objeto ou função criada durante a renderização, ele poderá ser executado com muita frequência. Por exemplo, este efeito se reconecta após cada commit porque a createOptionsfunção é diferente a cada renderização:
+
+function ChatRoom({ roomId }) {
+  const [message, setMessage] = useState('');
+
+  function createOptions() { // 🚩 This function is created from scratch on every re-render
+    return {
+      serverUrl: serverUrl,
+      roomId: roomId
+    };
+  }
+
+  useEffect(() => {
+    const options = createOptions(); // It's used inside the Effect
+    const connection = createConnection(options);
+    connection.connect();
+    return () => connection.disconnect();
+  }, [createOptions]); // 🚩 As a result, these dependencies are always different on a commit
+  // ...
+Em si, criar uma função do zero a cada nova renderização não é um problema. Você não precisa otimizar isso. No entanto, se você a usar como dependência do seu Effect, isso fará com que seu Effect seja executado novamente após cada commit.
+
+Evite usar uma função criada durante a renderização como dependência. Em vez disso, declare-a dentro do Effect:
+
+
+
+
+import { useState, useEffect } from 'react';
+import { createConnection } from './chat.js';
+
+const serverUrl = 'https://localhost:1234';
+
+function ChatRoom({ roomId }) {
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    function createOptions() {
+      return {
+        serverUrl: serverUrl,
+        roomId: roomId
+      };
+    }
+
+    const options = createOptions();
+    const connection = createConnection(options);
+    connection.connect();
+    return () => connection.disconnect();
+  }, [roomId]);
+
+  return (
+    <>
+      <h1>Welcome to the {roomId} room!</h1>
+      <input value={message} onChange={e => setMessage(e.target.value)} />
+    </>
+  );
+}
+
+export default function App() {
+  const [roomId, setRoomId] = useState('general');
+  return (
+    <>
+      <label>
+        Choose the chat room:{' '}
+
+
+
+Agora que você definiu a createOptionsfunção dentro do Effect, o próprio Effect depende apenas da roomIdstring. Com essa correção, digitar no campo de entrada não reconecta o chat. Ao contrário de uma função que é recriada, uma string como essa roomIdnão muda a menos que você a defina com outro valor. Leia mais sobre como remover dependências.
+
+Lendo os últimos adereços e o estado de um Efeito
+Por padrão, ao ler um valor reativo de um Effect, você precisa adicioná-lo como uma dependência. Isso garante que seu Effect "reaja" a cada alteração desse valor. Para a maioria das dependências, esse é o comportamento desejado.
+
+No entanto, às vezes você vai querer ler as propriedades e o estado mais recentes de um efeito sem "reagir" a eles. Por exemplo, imagine que você queira registrar o número de itens no carrinho de compras a cada visita à página:
+
+function Page({ url, shoppingCart }) {
+  useEffect(() => {
+    logVisit(url, shoppingCart.length);
+  }, [url, shoppingCart]); // ✅ All dependencies declared
+  // ...
+}
+E se você quiser registrar uma nova visita à página após cada urlalteração, mas não apenas se as shoppingCartalterações ocorrerem? Você não pode excluir shoppingCartum elemento das dependências sem violar as regras de reatividade. No entanto, você pode expressar que não deseja que um trecho de código "reaja" às alterações, mesmo que ele seja chamado de dentro de um Effect. Declare um Effect Event com o useEffectEventHook e mova o código que lê o evento shoppingCartpara dentro dele:
+
+function Page({ url, shoppingCart }) {
+  const onVisit = useEffectEvent(visitedUrl => {
+    logVisit(visitedUrl, shoppingCart.length)
+  });
+
+  useEffect(() => {
+    onVisit(url);
+  }, [url]); // ✅ All dependencies declared
+  // ...
+}
+Os eventos de efeito não são reativos e devem sempre ser omitidos das dependências do seu efeito. É isso que permite inserir código não reativo (onde você pode ler o valor mais recente de algumas props e do estado) dentro deles. Ao ler shoppingCarto valor dentro do evento onVisit, você garante que shoppingCarto efeito não será executado novamente.
+
+Saiba mais sobre como os Eventos de Efeito permitem separar código reativo de código não reativo.
+
+Exibir conteúdo diferente no servidor e no cliente.
+Se seu aplicativo usa renderização no servidor ( diretamente ou por meio de um framework ), seu componente será renderizado em dois ambientes diferentes. No servidor, ele renderizará para gerar o HTML inicial. No cliente, o React executará o código de renderização novamente para que possa associar seus manipuladores de eventos a esse HTML. É por isso que, para que a hidratação funcione, a saída da renderização inicial deve ser idêntica no cliente e no servidor.
+
+Em casos raros, você pode precisar exibir conteúdo diferente no cliente. Por exemplo, se seu aplicativo lê alguns dados de um arquivo localStorage, ele não poderá fazer isso no servidor. Veja como você pode implementar isso:
+
+function MyComponent() {
+  const [didMount, setDidMount] = useState(false);
+
+  useEffect(() => {
+    setDidMount(true);
+  }, []);
+
+  if (didMount) {
+    // ... return client-only JSX ...
+  }  else {
+    // ... return initial JSX ...
+  }
+}
+Enquanto o aplicativo está carregando, o usuário verá a renderização inicial. Em seguida, quando o aplicativo estiver carregado e hidratado, seu efeito será executado e definido didMountcomo true`true`, acionando uma nova renderização. Isso fará com que a renderização passe a ser exibida apenas no cliente. Os efeitos não são executados no servidor, por isso o valor `true` didMountera usado falsedurante a renderização inicial no servidor.
+
+Use esse padrão com moderação. Lembre-se de que usuários com conexões lentas verão o conteúdo inicial por um bom tempo — potencialmente, vários segundos — então você não quer fazer alterações bruscas na aparência do seu componente. Em muitos casos, você pode evitar essa necessidade exibindo elementos diferentes condicionalmente com CSS.
+
+Solução de problemas
+Meu efeito é executado duas vezes quando o componente é montado.
+Quando o Modo Estrito está ativado, em desenvolvimento, o React executa a configuração e a limpeza uma vez a mais antes da configuração propriamente dita.
+
+Este é um teste de estresse que verifica se a lógica do seu efeito está implementada corretamente. Se isso causar problemas visíveis, significa que sua função de limpeza está incompleta. A função de limpeza deve interromper ou desfazer o que a função de configuração estava fazendo. A regra geral é que o usuário não deve ser capaz de distinguir entre a configuração sendo chamada uma única vez (como em produção) e uma sequência de configuração → limpeza → configuração (como em desenvolvimento).
+
+Leia mais sobre como isso ajuda a encontrar erros e como corrigir sua lógica.
+
+Meu efeito é executado após cada nova renderização.
+Primeiro, verifique se você não se esqueceu de especificar a matriz de dependências:
+
+useEffect(() => {
+  // ...
+}); // 🚩 No dependency array: re-runs after every commit!
+Se você especificou a matriz de dependências, mas seu efeito ainda é executado em loop, é porque uma de suas dependências é diferente a cada nova renderização.
+
+Você pode depurar esse problema registrando manualmente suas dependências no console:
+
+  useEffect(() => {
+    // ..
+  }, [serverUrl, roomId]);
+
+  console.log([serverUrl, roomId]);
+Em seguida, você pode clicar com o botão direito do mouse nos arrays de diferentes renderizações no console e selecionar "Armazenar como variável global" para ambos. Supondo que o primeiro tenha sido salvo como `__init__` temp1e o segundo como `__init__` temp2, você pode usar o console do navegador para verificar se cada dependência em ambos os arrays é a mesma:
+
+Object.is(temp1[0], temp2[0]); // Is the first dependency the same between the arrays?
+Object.is(temp1[1], temp2[1]); // Is the second dependency the same between the arrays?
+Object.is(temp1[2], temp2[2]); // ... and so on for every dependency ...
+Ao encontrar uma dependência que seja diferente a cada nova renderização, geralmente você pode corrigi-la de uma destas maneiras:
+
+Atualizando o estado com base no estado anterior de um efeito.
+Remover dependências de objetos desnecessárias
+Remover dependências de funções desnecessárias
+Lendo os últimos adereços e o estado de um Efeito
+Como último recurso (se esses métodos não ajudarem), envolva sua criação com useMemo`or` useCallback(para funções).
+
+Meu efeito continua sendo executado em um ciclo infinito.
+Se o seu efeito for executado em um ciclo infinito, estas duas condições devem ser verdadeiras:
+
+Seu efeito está atualizando algum estado.
+Esse estado leva a uma nova renderização, o que faz com que as dependências do efeito mudem.
+Antes de começar a corrigir o problema, pergunte-se se o seu Effect está se conectando a algum sistema externo (como DOM, rede, um widget de terceiros etc.). Por que o seu Effect precisa definir um estado? Ele sincroniza com esse sistema externo? Ou você está tentando gerenciar o fluxo de dados do seu aplicativo com ele?
+
+Caso não exista um sistema externo, considere se remover o efeito por completo simplificaria sua lógica.
+
+Se você estiver realmente sincronizando com algum sistema externo, pense no porquê e em que condições seu Effect deve atualizar o estado. Algo mudou que afeta a saída visual do seu componente? Se você precisa controlar alguns dados que não são usados ​​na renderização, uma referência (que não aciona novas renderizações) pode ser mais apropriada. Verifique se seu Effect não atualiza o estado (e aciona novas renderizações) mais do que o necessário.
+
+Por fim, se o seu Effect estiver atualizando o estado no momento certo, mas ainda houver um loop, é porque essa atualização de estado leva à alteração de uma das dependências do Effect. Leia como depurar alterações de dependência.
+
+Minha lógica de limpeza é executada mesmo que meu componente não tenha sido desmontado.
+A função de limpeza é executada não apenas durante a desmontagem, mas também antes de cada nova renderização com dependências alteradas. Além disso, em desenvolvimento, o React executa a configuração e a limpeza uma vez extra imediatamente após a montagem do componente.
+
+Se você tem código de limpeza sem um código de configuração correspondente, geralmente é um sinal de alerta:
+
+useEffect(() => {
+  // 🔴 Avoid: Cleanup logic without corresponding setup logic
+  return () => {
+    doSomething();
+  };
+}, []);
+A sua lógica de limpeza deve ser “simétrica” à lógica de configuração e deve interromper ou desfazer qualquer ação realizada durante a configuração:
+
+  useEffect(() => {
+    const connection = createConnection(serverUrl, roomId);
+    connection.connect();
+    return () => {
+      connection.disconnect();
+    };
+  }, [serverUrl, roomId]);
+Aprenda como o ciclo de vida do efeito difere do ciclo de vida do componente.
+
+Meu efeito faz algo visual, e eu vejo uma pequena oscilação antes de ele ser executado.
+Se o seu efeito precisar impedir que o navegador renderize a tela, substitua useEffectpor useLayoutEffect. Observe que isso não deve ser necessário para a grande maioria dos efeitos. Você só precisará disso se for crucial executar o efeito antes da renderização do navegador: por exemplo, para medir e posicionar uma dica de ferramenta antes que o usuário a veja.

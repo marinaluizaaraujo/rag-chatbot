@@ -1,0 +1,394 @@
+Renderização Condicional
+Seus componentes frequentemente precisarão exibir coisas diferentes dependendo de diferentes condições. No React, você pode renderizar JSX condicionalmente usando sintaxe JavaScript como ifinstruções, &&`if` e ? :operadores.
+
+Você aprenderá
+Como retornar JSX diferente dependendo de uma condição
+Como incluir ou excluir condicionalmente um trecho de JSX
+Atalhos comuns de sintaxe condicional que você encontrará em bases de código React.
+Retornando JSX condicionalmente
+Digamos que você tenha um PackingListcomponente que renderiza vários Itemelementos, que podem ser marcados como compactados ou não:
+
+
+
+
+
+
+function Item({ name, isPacked }) {
+  return <li className="item">{name}</li>;
+}
+
+export default function PackingList() {
+  return (
+    <section>
+      <h1>Sally Ride's Packing List</h1>
+      <ul>
+        <Item
+          isPacked={true}
+          name="Space suit"
+        />
+        <Item
+          isPacked={true}
+          name="Helmet with a golden leaf"
+        />
+        <Item
+          isPacked={false}
+          name="Photo of Tam"
+        />
+      </ul>
+    </section>
+  );
+}
+
+
+
+Observe que alguns Itemcomponentes têm sua isPackedpropriedade definida como `true` trueem vez de `false` false. Você deve adicionar uma marca de seleção (✅) aos itens embalados se `true` for verdadeiro isPacked={true}.
+
+Você pode escrever isso como uma declaração if/else da seguinte forma:
+
+if (isPacked) {
+  return <li className="item">{name} ✅</li>;
+}
+return <li className="item">{name}</li>;
+Se a isPackedpropriedade for `true` true, este código retorna uma árvore JSX diferente. Com essa alteração, alguns itens recebem uma marca de seleção no final:
+
+
+
+
+
+
+function Item({ name, isPacked }) {
+  if (isPacked) {
+    return <li className="item">{name} ✅</li>;
+  }
+  return <li className="item">{name}</li>;
+}
+
+export default function PackingList() {
+  return (
+    <section>
+      <h1>Sally Ride's Packing List</h1>
+      <ul>
+        <Item
+          isPacked={true}
+          name="Space suit"
+        />
+        <Item
+          isPacked={true}
+          name="Helmet with a golden leaf"
+        />
+        <Item
+          isPacked={false}
+          name="Photo of Tam"
+        />
+      </ul>
+    </section>
+  );
+}
+
+
+
+Experimente editar o que é retornado em ambos os casos e veja como o resultado muda!
+
+Observe como você está criando lógica ramificada com instruções ` ifand` em JavaScript return. No React, o fluxo de controle (como condições) é gerenciado pelo JavaScript.
+
+Retornando condicionalmente nada comnull 
+Em algumas situações, você não vai querer renderizar nada. Por exemplo, digamos que você não queira exibir itens embalados. Um componente deve retornar algo. Nesse caso, você pode retornar null:
+
+if (isPacked) {
+  return null;
+}
+return <li className="item">{name}</li>;
+Se isPackedfor verdadeiro, o componente não retornará nada null. Caso contrário, retornará o código JSX para renderizar.
+
+
+
+
+
+
+function Item({ name, isPacked }) {
+  if (isPacked) {
+    return null;
+  }
+  return <li className="item">{name}</li>;
+}
+
+export default function PackingList() {
+  return (
+    <section>
+      <h1>Sally Ride's Packing List</h1>
+      <ul>
+        <Item
+          isPacked={true}
+          name="Space suit"
+        />
+        <Item
+          isPacked={true}
+          name="Helmet with a golden leaf"
+        />
+        <Item
+          isPacked={false}
+          name="Photo of Tam"
+        />
+      </ul>
+    </section>
+  );
+}
+
+
+
+Na prática, retornar nullum valor de um componente não é comum, pois pode surpreender um desenvolvedor que esteja tentando renderizá-lo. O mais frequente é incluir ou excluir o componente condicionalmente no JSX do componente pai. Veja como fazer isso!
+
+Incluindo JSX condicionalmente
+No exemplo anterior, você controlou qual árvore JSX (se alguma!) seria retornada pelo componente. Você já deve ter notado alguma duplicação na saída da renderização:
+
+<li className="item">{name} ✅</li>
+é muito semelhante a
+
+<li className="item">{name}</li>
+Ambas as ramificações condicionais retornam <li className="item">...</li>:
+
+if (isPacked) {
+  return <li className="item">{name} ✅</li>;
+}
+return <li className="item">{name}</li>;
+Embora essa duplicação não seja prejudicial, pode dificultar a manutenção do seu código. E se você quiser alterar o valor className? Você teria que fazer isso em dois lugares diferentes no seu código! Em uma situação como essa, você poderia incluir condicionalmente um pequeno trecho de JSX para tornar seu código mais conciso e sem repetição (DRY).
+
+Operador condicional (ternário) ( ? :)
+JavaScript possui uma sintaxe compacta para escrever uma expressão condicional — o operador condicional ou “operador ternário”.
+
+Em vez disso:
+
+if (isPacked) {
+  return <li className="item">{name} ✅</li>;
+}
+return <li className="item">{name}</li>;
+Você pode escrever isto:
+
+return (
+  <li className="item">
+    {isPacked ? name + ' ✅' : name}
+  </li>
+);
+Você pode ler isso como “se isPackedfor verdadeiro, então ( ?) renderize name + ' ✅', caso contrário ( :) renderize name” .
+
+Análise Detalhada
+Esses dois exemplos são totalmente equivalentes?
+
+Agora, digamos que você queira envolver o texto do item concluído em outra tag HTML, como <del>para riscá-lo. Você pode adicionar ainda mais quebras de linha e parênteses para facilitar o aninhamento de mais JSX em cada um dos casos:
+
+
+
+
+
+
+function Item({ name, isPacked }) {
+  return (
+    <li className="item">
+      {isPacked ? (
+        <del>
+          {name + ' ✅'}
+        </del>
+      ) : (
+        name
+      )}
+    </li>
+  );
+}
+
+export default function PackingList() {
+  return (
+    <section>
+      <h1>Sally Ride's Packing List</h1>
+      <ul>
+        <Item
+          isPacked={true}
+          name="Space suit"
+        />
+        <Item
+          isPacked={true}
+          name="Helmet with a golden leaf"
+        />
+        <Item
+          isPacked={false}
+          name="Photo of Tam"
+        />
+      </ul>
+    </section>
+  );
+}
+
+
+
+Esse estilo funciona bem para condições simples, mas use-o com moderação. Se seus componentes ficarem confusos com muita marcação condicional aninhada, considere extrair os componentes filhos para organizar melhor o código. No React, a marcação faz parte do seu código, então você pode usar ferramentas como variáveis ​​e funções para simplificar expressões complexas.
+
+Operador lógico AND ( &&)
+Outro atalho comum que você encontrará é o operador lógico AND (&) do JavaScript&& . Dentro de componentes React, ele costuma aparecer quando você quer renderizar algum JSX se a condição for verdadeira, ou não renderizar nada caso contrário. Com ` &&&&`, você pode renderizar condicionalmente o ícone de marca de seleção somente se ` &&` isPackedfor verdadeiro true:
+
+return (
+  <li className="item">
+    {name} {isPacked && '✅'}
+  </li>
+);
+Você pode ler isso como “se isPacked, então ( &&) renderize a marca de seleção, caso contrário, não renderize nada” .
+
+Veja-o em ação:
+
+
+
+
+
+
+function Item({ name, isPacked }) {
+  return (
+    <li className="item">
+      {name} {isPacked && '✅'}
+    </li>
+  );
+}
+
+export default function PackingList() {
+  return (
+    <section>
+      <h1>Sally Ride's Packing List</h1>
+      <ul>
+        <Item
+          isPacked={true}
+          name="Space suit"
+        />
+        <Item
+          isPacked={true}
+          name="Helmet with a golden leaf"
+        />
+        <Item
+          isPacked={false}
+          name="Photo of Tam"
+        />
+      </ul>
+    </section>
+  );
+}
+
+
+
+Uma expressão JavaScript `&&` retorna o valor do seu lado direito (no nosso caso, a marca de seleção) se o lado esquerdo (a nossa condição) for verdadeiro true. Mas se a condição for falsa false, toda a expressão se torna nula false. O React considera `&& false` como um "buraco" na árvore JSX, tal como `<div> null` ou `<span>`, e não renderiza nada no seu lugar.undefined
+
+Armadilha
+Não coloque números no lado esquerdo de &&.
+
+Para testar a condição, o JavaScript converte automaticamente o lado esquerdo para um booleano. No entanto, se o lado esquerdo for verdadeiro 0, toda a expressão receberá esse valor (true 0) e o React renderizará o conteúdo 0em vez de exibir nada.
+
+Por exemplo, um erro comum é escrever um código como messageCount && <p>New messages</p>. É fácil presumir que ele não renderiza nada quando messageCounté 0, mas na verdade ele renderiza o 0próprio!
+
+Para corrigir isso, transforme o lado esquerdo em um booleano: messageCount > 0 && <p>New messages</p>.
+
+Atribuição condicional de JSX a uma variável
+Quando os atalhos atrapalham a escrita de código limpo, tente usar uma ifinstrução e uma variável. Você pode reatribuir variáveis ​​definidas com let, então comece fornecendo o conteúdo padrão que deseja exibir, o nome:
+
+let itemContent = name;
+Use uma ifinstrução para reatribuir uma expressão JSX se itemContentela isPackedfor true:
+
+if (isPacked) {
+  itemContent = name + " ✅";
+}
+As chaves abrem a “janela para o JavaScript”. Incorpore a variável com chaves na árvore JSX retornada, aninhando a expressão calculada anteriormente dentro do JSX:
+
+<li className="item">
+  {itemContent}
+</li>
+Este estilo é o mais prolixo, mas também o mais flexível. Veja-o em ação:
+
+
+
+
+
+
+function Item({ name, isPacked }) {
+  let itemContent = name;
+  if (isPacked) {
+    itemContent = name + " ✅";
+  }
+  return (
+    <li className="item">
+      {itemContent}
+    </li>
+  );
+}
+
+export default function PackingList() {
+  return (
+    <section>
+      <h1>Sally Ride's Packing List</h1>
+      <ul>
+        <Item
+          isPacked={true}
+          name="Space suit"
+        />
+        <Item
+          isPacked={true}
+          name="Helmet with a golden leaf"
+        />
+        <Item
+          isPacked={false}
+          name="Photo of Tam"
+        />
+      </ul>
+    </section>
+  );
+}
+
+
+
+Assim como antes, isso funciona não apenas para texto, mas também para JSX arbitrário:
+
+
+
+
+
+
+function Item({ name, isPacked }) {
+  let itemContent = name;
+  if (isPacked) {
+    itemContent = (
+      <del>
+        {name + " ✅"}
+      </del>
+    );
+  }
+  return (
+    <li className="item">
+      {itemContent}
+    </li>
+  );
+}
+
+export default function PackingList() {
+  return (
+    <section>
+      <h1>Sally Ride's Packing List</h1>
+      <ul>
+        <Item
+          isPacked={true}
+          name="Space suit"
+        />
+        <Item
+          isPacked={true}
+          name="Helmet with a golden leaf"
+        />
+        <Item
+          isPacked={false}
+          name="Photo of Tam"
+        />
+      </ul>
+    </section>
+  );
+
+
+Se você não está familiarizado com JavaScript, essa variedade de estilos pode parecer complexa à primeira vista. No entanto, aprendê-los ajudará você a ler e escrever qualquer código JavaScript — e não apenas componentes React! Escolha o que preferir para começar e consulte esta referência novamente se esquecer como os outros funcionam.
+
+Resumo
+Em React, você controla a lógica de ramificação com JavaScript.
+Você pode retornar uma expressão JSX condicionalmente com uma ifinstrução.
+Você pode salvar condicionalmente um código JSX em uma variável e, em seguida, incluí-lo em outro código JSX usando chaves.
+Em JSX, {cond ? <A /> : <B />}significa “se cond, renderize <A />, caso contrário <B />” .
+Em JSX, {cond && <A />}significa "se cond, renderize <A />, caso contrário, nada" .
+Os atalhos são comuns, mas você não precisa usá-los se preferir o formato simples if.

@@ -1,0 +1,256 @@
+Passando propriedades para um componente
+Os componentes React usam props para se comunicarem entre si. Cada componente pai pode passar informações para seus componentes filhos, fornecendo-lhes props. As props podem lembrar atributos HTML, mas você pode passar qualquer valor JavaScript por meio delas, incluindo objetos, arrays e funções.
+
+Você aprenderá
+Como passar propriedades para um componente
+Como ler as propriedades de um componente
+Como especificar valores padrão para propriedades
+Como passar um código JSX para um componente?
+Como os adereços mudam ao longo do tempo
+Adereços familiares
+Props são as informações que você passa para uma tag JSX. Por exemplo, className`props`, `props` src, alt`props`, width`props` e ` heightprops` são algumas das props que você pode passar para uma tag <img>JSX.
+
+
+
+
+
+
+function Avatar() {
+  return (
+    <img
+      className="avatar"
+      src="https://react.dev/images/docs/scientists/1bX5QH6.jpg"
+      alt="Lin Lanying"
+      width={100}
+      height={100}
+    />
+  );
+}
+
+export default function Profile() {
+  return (
+    <Avatar />
+  );
+}
+
+
+
+As propriedades que você pode passar para uma <img>tag `<a>` são predefinidas (o ReactDOM está em conformidade com o padrão HTML ). Mas você pode passar quaisquer propriedades para seus próprios componentes, como <Avatar>`<div>`, para personalizá-los. Veja como!
+
+Passando propriedades para um componente
+Neste código, o Profilecomponente não está passando nenhuma propriedade para o componente filho Avatar.
+
+export default function Profile() {
+  return (
+    <Avatar />
+  );
+}
+Você pode dar Avataros parabéns em duas etapas.
+
+Passo 1: Passe as propriedades para o componente filho.
+Primeiro, passe algumas propriedades para Avatar. Por exemplo, vamos passar duas propriedades: person(um objeto) e size(um número):
+
+export default function Profile() {
+  return (
+    <Avatar
+      person={{ name: 'Lin Lanying', imageId: '1bX5QH6' }}
+      size={100}
+    />
+  );
+}
+Observação
+Se as chaves duplas após o símbolo `after` person=te confundem, lembre-se de que elas são apenas um objeto dentro das chaves JSX.
+
+Agora você pode ler essas propriedades dentro do Avatarcomponente.
+
+Passo 2: Leia as propriedades dentro do componente filho.
+Você pode ler essas propriedades listando seus nomes person, sizeseparados por vírgulas dentro ({e })imediatamente após o ponto function Avatar. Isso permite que você as use dentro do Avatarcódigo, como faria com uma variável.
+
+function Avatar({ person, size }) {
+  // person and size are available here
+}
+Adicione alguma lógica Avatarque utilize as propriedades person`and` sizepara renderização, e pronto.
+
+Agora você pode configurar Avatara renderização de diversas maneiras com diferentes propriedades. Experimente ajustar os valores!
+
+
+
+
+import { getImageUrl } from './utils.js';
+
+function Avatar({ person, size }) {
+  return (
+    <img
+      className="avatar"
+      src={getImageUrl(person)}
+      alt={person.name}
+      width={size}
+      height={size}
+    />
+  );
+}
+
+export default function Profile() {
+  return (
+    <div>
+      <Avatar
+        size={100}
+        person={{
+          name: 'Katsuko Saruhashi',
+          imageId: 'YfeOqp2'
+        }}
+      />
+      <Avatar
+        size={80}
+        person={{
+          name: 'Aklilu Lemma',
+          imageId: 'OKS67lh'
+        }}
+      />
+      <Avatar
+        size={50}
+        person={{
+          name: 'Lin Lanying',
+          imageId: '1bX5QH6'
+
+
+As props permitem que você pense nos componentes pai e filho de forma independente. Por exemplo, você pode alterar as props dentro do componente personpai sem precisar se preocupar com a forma como o componente filho as utiliza. Da mesma forma, você pode alterar a forma como o componente filho utiliza essas props, sem precisar consultar o componente pai .sizeProfileAvatarAvatarProfile
+
+Você pode pensar nas props como "botões" que você pode ajustar. Elas desempenham o mesmo papel que os argumentos desempenham para as funções — na verdade, as props são o único argumento do seu componente! As funções de componentes React aceitam um único argumento, um propsobjeto:
+
+function Avatar(props) {
+  let person = props.person;
+  let size = props.size;
+  // ...
+}
+Normalmente, você não precisa do propsobjeto inteiro, então você o desestrutura em propriedades individuais.
+
+Armadilha
+Não perca o par de cachos {dentro} de (e )ao declarar adereços:
+
+function Avatar({ person, size }) {
+  // ...
+}
+Essa sintaxe é chamada de “desestruturação” e é equivalente a ler propriedades de um parâmetro de função:
+
+function Avatar(props) {
+  let person = props.person;
+  let size = props.size;
+  // ...
+}
+Especificar um valor padrão para uma propriedade.
+Se você quiser atribuir um valor padrão a uma propriedade para ser usado quando nenhum valor for especificado, você pode fazer isso com a desestruturação, colocando =o valor padrão logo após o parâmetro:
+
+function Avatar({ person, size = 100 }) {
+  // ...
+}
+Agora, se <Avatar person={...} />for renderizado sem nenhuma sizepropriedade, o sizeserá definido como 100.
+
+O valor padrão só é usado se a sizepropriedade estiver ausente ou se você passar `null` size={undefined}. Mas se você passar `null` size={null}ou ` size={0}null`, o valor padrão não será usado.
+
+Encaminhando propriedades com a sintaxe de propagação JSX
+Às vezes, passar os adereços se torna muito repetitivo:
+
+function Profile({ person, size, isSepia, thickBorder }) {
+  return (
+    <div className="card">
+      <Avatar
+        person={person}
+        size={size}
+        isSepia={isSepia}
+        thickBorder={thickBorder}
+      />
+    </div>
+  );
+}
+Não há nada de errado com código repetitivo — ele pode até tornar o código mais legível. Mas, às vezes, a concisão é importante. Alguns componentes repassam todas as suas propriedades para os filhos, como acontece Profilecom o componente ` Avatar<Component>`. Como eles não usam nenhuma das propriedades diretamente, pode ser interessante usar uma sintaxe de "spread" mais concisa:
+
+function Profile(props) {
+  return (
+    <div className="card">
+      <Avatar {...props} />
+    </div>
+  );
+}
+Isso encaminha todos os Profileadereços de 's para o Avatarsem listar o nome de cada um deles.
+
+Use a sintaxe de propagação com moderação. Se você a estiver usando em quase todos os componentes, algo está errado. Muitas vezes, isso indica que você deveria dividir seus componentes e passar os filhos como JSX. Mais sobre isso a seguir!
+
+Passando JSX como filhos
+É comum aninhar tags internas do navegador:
+
+<div>
+  <img />
+</div>
+Às vezes, você vai querer aninhar seus próprios componentes da mesma maneira:
+
+<Card>
+  <Avatar />
+</Card>
+Ao aninhar conteúdo dentro de uma tag JSX, o componente pai receberá esse conteúdo em uma propriedade chamada `content` children. Por exemplo, o Cardcomponente abaixo receberá uma childrenpropriedade `content` definida como `true` <Avatar />e o renderizará em uma div de encapsulamento:
+
+
+
+
+import Avatar from './Avatar.js';
+
+function Card({ children }) {
+  return (
+    <div className="card">
+      {children}
+    </div>
+  );
+}
+
+export default function Profile() {
+  return (
+    <Card>
+      <Avatar
+        size={100}
+        person={{
+          name: 'Katsuko Saruhashi',
+          imageId: 'YfeOqp2'
+        }}
+      />
+    </Card>
+  );
+}
+
+
+
+Experimente substituir o <Avatar>conteúdo interno <Card>por algum texto para ver como o Cardcomponente pode envolver qualquer conteúdo aninhado. Ele não precisa "saber" o que está sendo renderizado dentro dele. Você verá esse padrão flexível em muitos lugares.
+
+Você pode pensar em um componente com uma childrenpropriedade como tendo um "buraco" que pode ser "preenchido" por seus componentes pai com JSX arbitrário. Você frequentemente usará a childrenpropriedade para elementos visuais: painéis, grades, etc.
+
+Como os adereços mudam ao longo do tempo
+O Clockcomponente abaixo recebe duas props do seu componente pai: `props` colore `props` time. (O código do componente pai foi omitido porque ele usa `state` , o que não abordaremos agora.)
+
+Experimente alterar a cor na caixa de seleção abaixo:
+
+
+
+
+
+export default function Clock({ color, time }) {
+  return (
+    <h1 style={{ color: color }}>
+      {time}
+    </h1>
+  );
+}
+
+
+Este exemplo ilustra que um componente pode receber diferentes props ao longo do tempo. As props não são sempre estáticas! Aqui, a timeprop muda a cada segundo e a colorprop muda quando você seleciona outra cor. As props refletem os dados de um componente em qualquer ponto no tempo, e não apenas no início.
+
+No entanto, as props são imutáveis ​​— um termo da ciência da computação que significa "inalterável". Quando um componente precisa alterar suas props (por exemplo, em resposta a uma interação do usuário ou a novos dados), ele terá que "pedir" ao seu componente pai que lhe passe props diferentes — um novo objeto! Suas props antigas serão então descartadas e, eventualmente, o mecanismo JavaScript recuperará a memória ocupada por elas.
+
+Não tente "alterar propriedades". Quando precisar responder à entrada do usuário (como alterar a cor selecionada), você precisará "definir o estado", o que você pode aprender em Estado: A Memória de um Componente.
+
+Resumo
+Para passar propriedades, adicione-as ao JSX, da mesma forma que você faria com atributos HTML.
+Para ler as propriedades, use a function Avatar({ person, size })sintaxe de desestruturação.
+Você pode especificar um valor padrão como size = 100, que é usado para propriedades ausentes undefined.
+Você pode encaminhar todas as propriedades com <Avatar {...props} />a sintaxe de propagação JSX, mas não abuse dela!
+O JSX aninhado <Card><Avatar /></Card>aparecerá como uma propriedade Carddo componente children.
+Os props são instantâneos somente leitura em um determinado momento: cada renderização recebe uma nova versão dos props.
+Você não pode alterar as propriedades. Quando precisar de interatividade, você precisará definir o estado.

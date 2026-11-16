@@ -1,0 +1,518 @@
+Referência
+useState(initialState) 
+Para declarar uma variável de estado, faça a chamada useStateno nível superior do seu componente .
+
+import { useState } from 'react';
+
+function MyComponent() {
+  const [age, setAge] = useState(28);
+  const [name, setName] = useState('Taylor');
+  const [todos, setTodos] = useState(() => createTodos());
+  // ...
+A convenção é nomear as variáveis ​​de estado de forma semelhante [something, setSomething]ao uso da desestruturação de arrays.
+
+Veja mais exemplos abaixo.
+
+Parâmetros
+initialState: O valor inicial desejado para o estado. Pode ser um valor de qualquer tipo, mas há um comportamento especial para funções. Este argumento é ignorado após a renderização inicial.
+Se você passar uma função como ` initializer` initialState, ela será tratada como uma função inicializadora . Ela deve ser pura, não deve receber argumentos e deve retornar um valor de qualquer tipo. O React chamará sua função inicializadora ao inicializar o componente e armazenará seu valor de retorno como o estado inicial. Veja um exemplo abaixo.
+Retorna
+useStateRetorna uma matriz com exatamente dois valores:
+
+O estado atual. Durante a primeira renderização, ele corresponderá ao initialStateque você passou.
+A setfunção que permite atualizar o estado para um valor diferente e acionar uma nova renderização.
+Advertências
+useState`is` é um Hook, portanto, você só pode chamá-lo no nível superior do seu componente ou em seus próprios Hooks. Você não pode chamá-lo dentro de loops ou condições. Se precisar disso, extraia um novo componente e mova o estado para ele.
+No Modo Estrito, o React chamará sua função de inicialização duas vezes para ajudar a encontrar impurezas acidentais. Esse comportamento ocorre apenas em desenvolvimento e não afeta a produção. Se sua função de inicialização for pura (como deveria ser), isso não afetará o comportamento. O resultado de uma das chamadas será ignorado.
+setfunções, comosetSomething(nextState) 
+A setfunção retornada useStatepermite atualizar o estado para um valor diferente e acionar uma nova renderização. Você pode passar o próximo estado diretamente ou uma função que o calcula a partir do estado anterior:
+
+const [name, setName] = useState('Edward');
+
+function handleClick() {
+  setName('Taylor');
+  setAge(a => a + 1);
+  // ...
+Parâmetros
+nextStateO valor que você deseja para o estado. Pode ser um valor de qualquer tipo, mas há um comportamento especial para funções.
+Se você passar uma função como ` updater` nextState, ela será tratada como uma função de atualização . Ela deve ser pura, receber o estado pendente como seu único argumento e retornar o próximo estado. O React colocará sua função de atualização em uma fila e renderizará seu componente novamente. Durante a próxima renderização, o React calculará o próximo estado aplicando todas as funções de atualização enfileiradas ao estado anterior. Veja um exemplo abaixo.
+Retorna
+setAs funções não possuem valor de retorno.
+
+Advertências
+A setfunção atualiza a variável de estado apenas para a próxima renderização . Se você ler a variável de estado após chamar a setfunção, ainda obterá o valor antigo que estava na tela antes da chamada.
+
+Se o novo valor fornecido for idêntico ao atual state, conforme determinado por uma Object.iscomparação, o React evitará renderizar novamente o componente e seus filhos. Isso é uma otimização. Embora, em alguns casos, o React ainda precise chamar o componente antes de ignorar os filhos, isso não deve afetar seu código.
+
+O React agrupa as atualizações de estado. Ele atualiza a tela depois que todos os manipuladores de eventos forem executados e suas setfunções forem chamadas. Isso evita múltiplas renderizações durante um único evento. No raro caso de você precisar forçar o React a atualizar a tela mais cedo, por exemplo, para acessar o DOM, você pode usar ` flushSync.
+
+A setfunção tem uma identidade estável, por isso você frequentemente a verá omitida das dependências do Effect, mas incluí-la não fará com que o Effect seja acionado. Se o linter permitir que você omita uma dependência sem erros, é seguro fazê-lo. Saiba mais sobre como remover dependências do Effect.
+
+Chamar a setfunção durante a renderização só é permitido dentro do componente que está sendo renderizado no momento. O React descartará a saída e tentará renderizá-la novamente com o novo estado imediatamente. Esse padrão raramente é necessário, mas você pode usá-lo para armazenar informações das renderizações anteriores . Veja um exemplo abaixo.
+
+No Modo Estrito, o React chamará sua função de atualização duas vezes para ajudar a encontrar impurezas acidentais. Esse comportamento ocorre apenas em desenvolvimento e não afeta a produção. Se sua função de atualização for pura (como deveria ser), isso não afetará o comportamento. O resultado de uma das chamadas será ignorado.
+
+Uso
+Adicionando estado a um componente
+Utilize useStateo nível superior do seu componente para declarar uma ou mais variáveis ​​de estado.
+
+import { useState } from 'react';
+
+function MyComponent() {
+  const [age, setAge] = useState(42);
+  const [name, setName] = useState('Taylor');
+  // ...
+A convenção é nomear as variáveis ​​de estado de forma semelhante [something, setSomething]ao uso da desestruturação de arrays.
+
+useStateRetorna uma matriz com exatamente dois itens:
+
+O estado atual desta variável de estado, inicialmente definido para o estado inicial que você forneceu.
+A setfunção que permite alterá-la para qualquer outro valor em resposta à interação.
+Para atualizar o que está na tela, chame a setfunção com algum próximo estado:
+
+function handleClick() {
+  setName('Robin');
+}
+O React armazenará o próximo estado, renderizará seu componente novamente com os novos valores e atualizará a interface do usuário.
+
+Armadilha
+Chamar a setfunção não altera o estado atual do código que já está sendo executado :
+
+function handleClick() {
+  setName('Robin');
+  console.log(name); // Still "Taylor"!
+}
+Isso afeta apenas o que useStateserá retornado a partir da próxima renderização.
+
+Exemplos básicos de useState
+1. Contador (número )
+2. Campo de texto (cadeia de caracteres)
+3. Caixa de seleção ( booleana)
+4. Forma (duas variáveis )
+
+
+Exemplo 1 de 4 :Contador (número)
+Neste exemplo, a countvariável de estado armazena um número. Clicar no botão incrementa esse número.
+
+
+
+
+
+
+import { useState } from 'react';
+
+export default function Counter() {
+  const [count, setCount] = useState(0);
+
+  function handleClick() {
+    setCount(count + 1);
+  }
+
+  return (
+    <button onClick={handleClick}>
+      You pressed me {count} times
+    </button>
+  );
+}
+
+
+
+Atualizando o estado com base no estado anterior.
+Suponha que o agevalor seja 42. Este manipulador é chamado setAge(age + 1)três vezes:
+
+function handleClick() {
+  setAge(age + 1); // setAge(42 + 1)
+  setAge(age + 1); // setAge(42 + 1)
+  setAge(age + 1); // setAge(42 + 1)
+}
+No entanto, após um clique, ageserá apenas 43em vez de 45! Isso ocorre porque chamar a setfunção não atualiza a agevariável de estado no código já em execução. Portanto, cada setAge(age + 1)chamada se torna setAge(43).
+
+Para resolver esse problema, você pode passar uma função de atualização em setAgevez do próximo estado:
+
+function handleClick() {
+  setAge(a => a + 1); // setAge(42 => 43)
+  setAge(a => a + 1); // setAge(43 => 44)
+  setAge(a => a + 1); // setAge(44 => 45)
+}
+Aqui a => a + 1está sua função de atualização. Ela recebe o estado pendente e calcula o próximo estado a partir dele.
+
+O React coloca suas funções de atualização em uma fila. Então, durante a próxima renderização, ele as chamará na mesma ordem:
+
+a => a + 1receberá 42como estado pendente e retornará 43como o próximo estado.
+a => a + 1receberá 43como estado pendente e retornará 44como o próximo estado.
+a => a + 1receberá 44como estado pendente e retornará 45como o próximo estado.
+Não há outras atualizações na fila, então o React armazenará 45o estado atual ao final.
+
+Por convenção, é comum nomear o argumento de estado pendente com a primeira letra do nome da variável de estado, como `pending` apara `pending` age. No entanto, você também pode chamá-lo de `pending` prevAgeou algo que considere mais claro.
+
+O React pode chamar seus atualizadores duas vezes durante o desenvolvimento para verificar se eles são puros.
+
+Análise Detalhada
+É sempre preferível usar um atualizador?
+
+A diferença entre passar um atualizador e passar o próximo estado diretamente.
+1. Passando a função de atualização
+2. Passando diretamente para o próximo estado
+
+
+Exemplo 1 de 2 :Passando a função de atualização
+Este exemplo passa na função de atualização, portanto o botão “+3” funciona.
+
+
+
+
+
+
+import { useState } from 'react';
+
+export default function Counter() {
+  const [age, setAge] = useState(42);
+
+  function increment() {
+    setAge(a => a + 1);
+  }
+
+  return (
+    <>
+      <h1>Your age: {age}</h1>
+      <button onClick={() => {
+        increment();
+        increment();
+        increment();
+      }}>+3</button>
+      <button onClick={() => {
+        increment();
+      }}>+1</button>
+    </>
+  );
+}
+
+
+
+
+Atualizando objetos e arrays no estado.
+Você pode colocar objetos e arrays no estado. No React, o estado é considerado somente leitura, portanto, você deve substituí -lo em vez de modificar seus objetos existentes . Por exemplo, se você tiver um formobjeto no estado, não o modifique:
+
+// 🚩 Don't mutate an object in state like this:
+form.firstName = 'Taylor';
+Em vez disso, substitua o objeto inteiro criando um novo:
+
+// ✅ Replace state with a new object
+setForm({
+  ...form,
+  firstName: 'Taylor'
+});
+Leia sobre atualização de objetos no estado e atualização de arrays no estado para saber mais.
+
+Exemplos de objetos e arrays em estado
+1. Formulário (objeto )
+2. Formulário ( objeto aninhado)
+3. Lista (matriz )
+4. Escrevendo lógica de atualização concisa com Immer
+
+
+Exemplo 1 de 4 :Formulário (objeto)
+Neste exemplo, a formvariável de estado armazena um objeto. Cada entrada possui um manipulador de alterações que é chamado setFormcom o próximo estado de todo o formulário. A { ...form }sintaxe de propagação garante que o objeto de estado seja substituído em vez de modificado.
+
+
+
+
+
+
+import { useState } from 'react';
+
+export default function Form() {
+  const [form, setForm] = useState({
+    firstName: 'Barbara',
+    lastName: 'Hepworth',
+    email: 'bhepworth@sculpture.com',
+  });
+
+  return (
+    <>
+      <label>
+        First name:
+        <input
+          value={form.firstName}
+          onChange={e => {
+            setForm({
+              ...form,
+              firstName: e.target.value
+            });
+          }}
+        />
+      </label>
+      <label>
+        Last name:
+        <input
+          value={form.lastName}
+          onChange={e => {
+            setForm({
+              ...form,
+              lastName: e.target.value
+            });
+          }}
+        />
+      </label>
+      <label>
+
+
+
+Evitar recriar o estado inicial.
+O React salva o estado inicial uma única vez e o ignora nas renderizações subsequentes.
+
+function TodoList() {
+  const [todos, setTodos] = useState(createInitialTodos());
+  // ...
+Embora o resultado createInitialTodos()seja usado apenas na renderização inicial, você ainda está chamando essa função em cada renderização. Isso pode ser um desperdício se estiver criando arrays grandes ou realizando cálculos dispendiosos.
+
+Para resolver isso, você pode passá-la como uma função inicializadora para useState:
+
+function TodoList() {
+  const [todos, setTodos] = useState(createInitialTodos);
+  // ...
+Note que você está passando `this` createInitialTodos, que é a própria função , e não `result` createInitialTodos(), que é o resultado da chamada dela. Se você passar uma função para `react.create` useState, o React só a chamará durante a inicialização.
+
+O React pode chamar seus inicializadores duas vezes durante o desenvolvimento para verificar se eles são puros.
+
+A diferença entre passar um inicializador e passar o estado inicial diretamente.
+1. Passando a função inicializadora
+2. Passando o estado inicial diretamente
+
+
+Exemplo 1 de 2 :Passando a função inicializadora
+Este exemplo passa a função inicializadora, portanto a createInitialTodosfunção só é executada durante a inicialização. Ela não é executada quando o componente é renderizado novamente, como quando você digita algo no campo de entrada.
+
+
+
+
+
+
+import { useState } from 'react';
+
+function createInitialTodos() {
+  const initialTodos = [];
+  for (let i = 0; i < 50; i++) {
+    initialTodos.push({
+      id: i,
+      text: 'Item ' + (i + 1)
+    });
+  }
+  return initialTodos;
+}
+
+export default function TodoList() {
+  const [todos, setTodos] = useState(createInitialTodos);
+  const [text, setText] = useState('');
+
+  return (
+    <>
+      <input
+        value={text}
+        onChange={e => setText(e.target.value)}
+      />
+      <button onClick={() => {
+        setText('');
+        setTodos([{
+          id: todos.length,
+          text: text
+        }, ...todos]);
+      }}>Add</button>
+      <ul>
+        {todos.map(item => (
+          <li key={item.id}>
+            {item.text}
+          </li>
+        ))}
+
+
+
+Redefinir estado com uma tecla
+Você frequentemente encontrará esse keyatributo ao renderizar listas. No entanto, ele também serve a outro propósito.
+
+Você pode redefinir o estado de um componente passando um valor diferente keypara ele. Neste exemplo, o botão "Redefinir" altera a versionvariável de estado, que passamos como um valor keypara o componente Form. Quando o keyvalor muda, o React recria o Formcomponente (e todos os seus filhos) do zero, portanto, seu estado é redefinido.
+
+Leia sobre como preservar e redefinir o estado para saber mais.
+
+
+
+
+
+
+import { useState } from 'react';
+
+export default function App() {
+  const [version, setVersion] = useState(0);
+
+  function handleReset() {
+    setVersion(version + 1);
+  }
+
+  return (
+    <>
+      <button onClick={handleReset}>Reset</button>
+      <Form key={version} />
+    </>
+  );
+}
+
+function Form() {
+  const [name, setName] = useState('Taylor');
+
+  return (
+    <>
+      <input
+        value={name}
+        onChange={e => setName(e.target.value)}
+      />
+      <p>Hello, {name}.</p>
+    </>
+  );
+}
+
+
+
+Armazenar informações de renderizações anteriores
+Normalmente, você atualizará o estado nos manipuladores de eventos. No entanto, em casos raros, você pode querer ajustar o estado em resposta à renderização — por exemplo, você pode querer alterar uma variável de estado quando uma propriedade for alterada.
+
+Na maioria dos casos, você não precisa disso:
+
+Se o valor que você precisa puder ser calculado inteiramente a partir das props atuais ou de outro estado, remova esse estado redundante por completo. Se você estiver preocupado com a necessidade de recálculos frequentes, o useMemoHook pode ajudar.
+Se você deseja redefinir o estado de toda a árvore de componentes, passe um valor diferente keypara o seu componente.
+Se possível, atualize todo o estado relevante nos manipuladores de eventos.
+Na rara hipótese de nenhuma dessas situações se aplicar, existe um padrão que você pode usar para atualizar o estado com base nos valores que já foram renderizados, chamando uma setfunção enquanto seu componente está sendo renderizado.
+
+Aqui está um exemplo. Este CountLabelcomponente exibe a countpropriedade que lhe foi passada:
+
+export default function CountLabel({ count }) {
+  return <h1>{count}</h1>
+}
+Suponha que você queira mostrar se o contador aumentou ou diminuiu desde a última alteração. A countpropriedade não informa isso — você precisa manter o controle do seu valor anterior. Adicione uma prevCountvariável de estado para rastreá-lo. Adicione outra variável de estado chamada ` trendcount` para armazenar se a contagem aumentou ou diminuiu. Compare `count` prevCountcom count`count` e, se forem diferentes, atualize `count` prevCounte `count` trend. Agora você pode mostrar tanto a contagem atual quanto a variação desde a última renderização .
+
+
+
+
+import { useState } from 'react';
+
+export default function CountLabel({ count }) {
+  const [prevCount, setPrevCount] = useState(count);
+  const [trend, setTrend] = useState(null);
+  if (prevCount !== count) {
+    setPrevCount(count);
+    setTrend(count > prevCount ? 'increasing' : 'decreasing');
+  }
+  return (
+    <>
+      <h1>{count}</h1>
+      {trend && <p>The count is {trend}</p>}
+    </>
+  );
+}
+
+
+
+Observe que, se você chamar uma função durante a renderização set, ela deve estar dentro de uma condiçãoprevCount !== count como ` if ( this.state ...setPrevCount(count)setset
+
+Esse padrão pode ser difícil de entender e geralmente é melhor evitá-lo. No entanto, é melhor do que atualizar o estado em um efeito. Quando você chama a setfunção durante a renderização, o React renderizará novamente esse componente imediatamente após o seu componente sair com uma returninstrução e antes de renderizar os filhos. Dessa forma, os filhos não precisam ser renderizados duas vezes. O restante da função do seu componente ainda será executado (e o resultado será descartado). Se a sua condição estiver abaixo de todas as chamadas de Hook, você pode adicionar um `setTimeout` antecipado return;para reiniciar a renderização mais cedo.
+
+Solução de problemas
+Atualizei o estado, mas o registro de logs continua mostrando o valor antigo.
+Chamar a setfunção não altera o estado do código em execução :
+
+function handleClick() {
+  console.log(count);  // 0
+
+  setCount(count + 1); // Request a re-render with 1
+  console.log(count);  // Still 0!
+
+  setTimeout(() => {
+    console.log(count); // Also 0!
+  }, 5000);
+}
+Isso ocorre porque os estados se comportam como um instantâneo. Atualizar o estado solicita outra renderização com o novo valor do estado, mas não afeta a countvariável JavaScript no seu manipulador de eventos já em execução.
+
+Se precisar usar o próximo estado, você pode salvá-lo em uma variável antes de passá-lo para a setfunção:
+
+const nextCount = count + 1;
+setCount(nextCount);
+
+console.log(count);     // 0
+console.log(nextCount); // 1
+Atualizei o estado, mas a tela não atualiza.
+O React ignorará sua atualização se o próximo estado for igual ao estado anterior, conforme determinado por uma Object.iscomparação. Isso geralmente acontece quando você altera um objeto ou um array diretamente no estado.
+
+obj.x = 10;  // 🚩 Wrong: mutating existing object
+setObj(obj); // 🚩 Doesn't do anything
+Você modificou um objobjeto existente e o passou de volta para setObjo React, então a atualização foi ignorada. Para corrigir isso, você precisa garantir que sempre substitua objetos e arrays no estado em vez de modificá -los .
+
+// ✅ Correct: creating a new object
+setObj({
+  ...obj,
+  x: 10
+});
+Estou recebendo o erro: “Muitas renderizações repetidas”
+Você pode receber um erro que diz: Too many re-renders. React limits the number of renders to prevent an infinite loop.Normalmente, isso significa que você está definindo o estado incondicionalmente durante a renderização , fazendo com que seu componente entre em um loop: renderizar, definir o estado (o que causa uma nova renderização), renderizar, definir o estado (o que causa uma nova renderização) e assim por diante. Muitas vezes, isso é causado por um erro na especificação de um manipulador de eventos.
+
+// 🚩 Wrong: calls the handler during render
+return <button onClick={handleClick()}>Click me</button>
+
+// ✅ Correct: passes down the event handler
+return <button onClick={handleClick}>Click me</button>
+
+// ✅ Correct: passes down an inline function
+return <button onClick={(e) => handleClick(e)}>Click me</button>
+Se não conseguir encontrar a causa desse erro, clique na seta ao lado do erro no console e examine a pilha de chamadas JavaScript para encontrar a setchamada de função específica responsável pelo erro.
+
+Minha função de inicialização ou atualização é executada duas vezes.
+No modo estrito , o React chamará algumas de suas funções duas vezes em vez de uma:
+
+function TodoList() {
+  // This component function will run twice for every render.
+
+  const [todos, setTodos] = useState(() => {
+    // This initializer function will run twice during initialization.
+    return createTodos();
+  });
+
+  function handleClick() {
+    setTodos(prevTodos => {
+      // This updater function will run twice for every click.
+      return [...prevTodos, createTodo()];
+    });
+  }
+  // ...
+Isso é esperado e não deve quebrar seu código.
+
+Esse comportamento , exclusivo para desenvolvimento, ajuda a manter os componentes puros. O React usa o resultado de uma das chamadas e ignora o resultado da outra. Contanto que seu componente, inicializador e funções de atualização sejam puros, isso não deve afetar sua lógica. No entanto, se eles forem acidentalmente impuros, isso ajuda a identificar os erros.
+
+Por exemplo, esta função de atualização impura modifica um array no estado:
+
+setTodos(prevTodos => {
+  // 🚩 Mistake: mutating state
+  prevTodos.push(createTodo());
+});
+Como o React chama sua função de atualização duas vezes, você verá que o item da lista de tarefas foi adicionado duas vezes, o que indica que há um erro. Neste exemplo, você pode corrigir o erro substituindo o array em vez de modificá-lo :
+
+setTodos(prevTodos => {
+  // ✅ Correct: replacing with new state
+  return [...prevTodos, createTodo()];
+});
+Agora que essa função de atualização é pura, chamá-la uma vez a mais não altera o comportamento. É por isso que o React chamá-la duas vezes ajuda a encontrar erros. Apenas as funções de componente, inicializador e atualização precisam ser puras. Os manipuladores de eventos não precisam ser puros, portanto o React nunca os chamará duas vezes.
+
+Leia o artigo "Como manter os componentes puros" para saber mais.
+
+Estou tentando atribuir um estado a uma função, mas ela está sendo chamada em vez disso.
+Você não pode colocar uma função em um estado dessa forma:
+
+const [fn, setFn] = useState(someFunction);
+
+function handleClick() {
+  setFn(someOtherFunction);
+}
+Como você está passando uma função, o React assume que `a` someFunctioné uma função inicializadora e `b` someOtherFunctioné uma função atualizadora , então ele tenta chamá-las e armazenar o resultado. Para realmente armazenar uma função, você precisa colocar `react.array` () =>antes delas em ambos os casos. Então o React armazenará as funções que você passar.
+
+const [fn, setFn] = useState(() => someFunction);
+
+function handleClick() {
+  setFn(() => someOtherFunction);
+}

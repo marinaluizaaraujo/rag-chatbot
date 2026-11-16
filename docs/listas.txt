@@ -1,0 +1,234 @@
+Renderizando listas
+Frequentemente, você desejará exibir vários componentes semelhantes a partir de uma coleção de dados. Você pode usar os métodos de array do JavaScript para manipular um array de dados. Nesta página, você usará filter()esses map()métodos com React para filtrar e transformar seu array de dados em um array de componentes.
+
+Você aprenderá
+Como renderizar componentes a partir de um array usando JavaScript?map()
+Como renderizar apenas componentes específicos usando JavaScript?filter()
+Quando e por que usar chaves React
+Renderizando dados de matrizes
+Suponha que você tenha uma lista de conteúdo.
+
+<ul>
+  <li>Creola Katherine Johnson: mathematician</li>
+  <li>Mario José Molina-Pasquel Henríquez: chemist</li>
+  <li>Mohammad Abdus Salam: physicist</li>
+  <li>Percy Lavon Julian: chemist</li>
+  <li>Subrahmanyan Chandrasekhar: astrophysicist</li>
+</ul>
+A única diferença entre os itens dessa lista é o conteúdo, os dados. Frequentemente, você precisará exibir várias instâncias do mesmo componente usando dados diferentes ao criar interfaces: desde listas de comentários até galerias de imagens de perfil. Nessas situações, você pode armazenar esses dados em objetos e arrays JavaScript e usar métodos como `map` map()e filter()`filter` para renderizar listas de componentes a partir deles.
+
+Aqui está um breve exemplo de como gerar uma lista de itens a partir de um array:
+
+Mova os dados para uma matriz:
+const people = [
+  'Creola Katherine Johnson: mathematician',
+  'Mario José Molina-Pasquel Henríquez: chemist',
+  'Mohammad Abdus Salam: physicist',
+  'Percy Lavon Julian: chemist',
+  'Subrahmanyan Chandrasekhar: astrophysicist'
+];
+Mapeie os peoplemembros em uma nova matriz de nós JSX listItems:
+const listItems = people.map(person => <li>{person}</li>);
+Retorne listItems do seu componente envolvido em um <ul>:
+return <ul>{listItems}</ul>;
+Eis o resultado:
+
+
+
+
+
+
+const people = [
+  'Creola Katherine Johnson: mathematician',
+  'Mario José Molina-Pasquel Henríquez: chemist',
+  'Mohammad Abdus Salam: physicist',
+  'Percy Lavon Julian: chemist',
+  'Subrahmanyan Chandrasekhar: astrophysicist'
+];
+
+export default function List() {
+  const listItems = people.map(person =>
+    <li>{person}</li>
+  );
+  return <ul>{listItems}</ul>;
+}
+
+
+
+Observe que a área de teste acima exibe um erro no console:
+
+Console
+Warning: Each child in a list should have a unique “key” prop.
+Você aprenderá como corrigir esse erro mais adiante nesta página. Antes disso, vamos adicionar alguma estrutura aos seus dados.
+
+Filtrar conjuntos de itens
+Esses dados podem ser estruturados ainda mais.
+
+const people = [{
+  id: 0,
+  name: 'Creola Katherine Johnson',
+  profession: 'mathematician',
+}, {
+  id: 1,
+  name: 'Mario José Molina-Pasquel Henríquez',
+  profession: 'chemist',
+}, {
+  id: 2,
+  name: 'Mohammad Abdus Salam',
+  profession: 'physicist',
+}, {
+  id: 3,
+  name: 'Percy Lavon Julian',
+  profession: 'chemist',
+}, {
+  id: 4,
+  name: 'Subrahmanyan Chandrasekhar',
+  profession: 'astrophysicist',
+}];
+Digamos que você queira uma maneira de mostrar apenas as pessoas cuja profissão é [profissão] 'chemist'. Você pode usar filter()o método `get` do JavaScript para retornar somente essas pessoas. Esse método recebe um array de itens, passa-os por um "teste" (uma função que retorna `true` trueou ` falsefalse`) e retorna um novo array contendo apenas os itens que passaram no teste (retornando `true` true).
+
+Você só quer os itens onde ` professionis` é ` 'chemist'. A função "teste" para isso se parece com (person) => person.profession === 'chemist'`. Veja como montá-la:`
+
+Crie uma nova matriz contendo apenas pessoas da área da química, chemistsfiltrando por :filter()peopleperson.profession === 'chemist'
+const chemists = people.filter(person =>
+  person.profession === 'chemist'
+);
+Agora, mapeie por cima chemists:
+const listItems = chemists.map(person =>
+  <li>
+     <img
+       src={getImageUrl(person)}
+       alt={person.name}
+     />
+     <p>
+       <b>{person.name}:</b>
+       {' ' + person.profession + ' '}
+       known for {person.accomplishment}
+     </p>
+  </li>
+);
+Por fim, retorne o listItemsresultado do seu componente:
+return <ul>{listItems}</ul>;
+
+
+
+import { people } from './data.js';
+import { getImageUrl } from './utils.js';
+
+export default function List() {
+  const chemists = people.filter(person =>
+    person.profession === 'chemist'
+  );
+  const listItems = chemists.map(person =>
+    <li>
+      <img
+        src={getImageUrl(person)}
+        alt={person.name}
+      />
+      <p>
+        <b>{person.name}:</b>
+        {' ' + person.profession + ' '}
+        known for {person.accomplishment}
+      </p>
+    </li>
+  );
+  return <ul>{listItems}</ul>;
+}
+
+
+
+Armadilha
+As funções de seta retornam implicitamente a expressão logo após a vírgula =>, então você não precisava de uma returninstrução `if`:
+
+const listItems = chemists.map(person =>
+  <li>...</li> // Implicit return!
+);
+No entanto, você deve escrever returnexplicitamente se o seu texto =>for seguido por uma {chave!
+
+const listItems = chemists.map(person => { // Curly brace
+  return <li>...</li>;
+});
+As funções de seta que contêm um "corpo de bloco"=> { são chamadas de funções de seta. Elas permitem escrever mais de uma linha de código, mas você precisa escrever a instrução manualmente. Se você esquecer de escrevê-la, nada será retornado!return
+
+Manter os itens da lista em ordem comkey 
+Observe que todos os ambientes de teste acima exibem um erro no console:
+
+Console
+Warning: Each child in a list should have a unique “key” prop.
+Você precisa atribuir a cada item da matriz um identificador key— uma string ou um número que o identifique exclusivamente entre os demais itens da matriz:
+
+<li key={person.id}>...</li>
+Observação
+Elementos JSX diretamente dentro de uma map()chamada sempre precisam de chaves!
+
+As chaves informam ao React a qual item do array cada componente corresponde, para que ele possa associá-los posteriormente. Isso se torna importante se os itens do seu array puderem ser movidos (por exemplo, devido à ordenação), inseridos ou excluídos. Uma chave bem escolhida keyajuda o React a inferir exatamente o que aconteceu e a fazer as atualizações corretas na árvore DOM.
+
+Em vez de gerar chaves dinamicamente, você deve incluí-las em seus dados:
+
+
+
+
+export const people = [{
+  id: 0, // Used in JSX as a key
+  name: 'Creola Katherine Johnson',
+  profession: 'mathematician',
+  accomplishment: 'spaceflight calculations',
+  imageId: 'MK3eW3A'
+}, {
+  id: 1, // Used in JSX as a key
+  name: 'Mario José Molina-Pasquel Henríquez',
+  profession: 'chemist',
+  accomplishment: 'discovery of Arctic ozone hole',
+  imageId: 'mynHUSa'
+}, {
+  id: 2, // Used in JSX as a key
+  name: 'Mohammad Abdus Salam',
+  profession: 'physicist',
+  accomplishment: 'electromagnetism theory',
+  imageId: 'bE7W1ji'
+}, {
+  id: 3, // Used in JSX as a key
+  name: 'Percy Lavon Julian',
+  profession: 'chemist',
+  accomplishment: 'pioneering cortisone drugs, steroids and birth control pills',
+  imageId: 'IOjWm71'
+}, {
+  id: 4, // Used in JSX as a key
+  name: 'Subrahmanyan Chandrasekhar',
+  profession: 'astrophysicist',
+  accomplishment: 'white dwarf star mass calculations',
+  imageId: 'lrWQx8l'
+}];
+
+
+
+Análise Detalhada
+Exibindo vários nós DOM para cada item da lista.
+
+Onde conseguir o seukey 
+Diferentes fontes de dados fornecem diferentes fontes de chaves:
+
+Dados de um banco de dados: Se seus dados vierem de um banco de dados, você pode usar as chaves/IDs do banco de dados, que são únicas por natureza.
+Dados gerados localmente: Se seus dados forem gerados e armazenados localmente (por exemplo, notas em um aplicativo de anotações), use um contador incremental crypto.randomUUID()ou um pacote como este uuidao criar itens.
+Regras das chaves
+As chaves devem ser únicas entre os elementos irmãos. No entanto, não há problema em usar as mesmas chaves para nós JSX em arrays diferentes .
+As chaves não devem ser alteradas , caso contrário, sua função será anulada! Não as gere durante a renderização.
+Por que o React precisa de chaves?
+Imagine que os arquivos na sua área de trabalho não tivessem nomes. Em vez disso, você se referiria a eles pela ordem em que aparecem — o primeiro arquivo, o segundo arquivo e assim por diante. Você poderia se acostumar com isso, mas depois de excluir um arquivo, tudo ficaria confuso. O segundo arquivo se tornaria o primeiro, o terceiro arquivo se tornaria o segundo e assim por diante.
+
+Os nomes de arquivos em uma pasta e as chaves JSX em um array têm uma função semelhante. Eles nos permitem identificar um item de forma única entre seus irmãos. Uma chave bem escolhida fornece mais informações do que a posição dentro do array. Mesmo que a posição mude devido à reordenação, ela keypermite que o React identifique o item durante todo o seu ciclo de vida.
+
+Armadilha
+Você pode ser tentado a usar o índice de um item no array como sua chave. Na verdade, é isso que o React usará se você não especificar um índice key. Mas a ordem em que os itens são renderizados mudará com o tempo se um item for inserido, excluído ou se o array for reordenado. Usar o índice como chave geralmente leva a bugs sutis e confusos.
+
+Da mesma forma, não gere chaves dinamicamente, por exemplo, com ` key={Math.random()}. Isso fará com que as chaves nunca correspondam entre as renderizações, levando à recriação de todos os seus componentes e do DOM a cada vez. Além de ser lento, isso também perderá qualquer entrada do usuário nos itens da lista. Em vez disso, use um ID estável baseado nos dados.
+
+Observe que seus componentes não receberão ` keyid` como uma propriedade. Ele é usado apenas como uma dica pelo próprio React. Se o seu componente precisar de um ID, você terá que passá-lo como uma propriedade separada: `id` <Profile key={id} userId={id} />.
+
+Resumo
+Nesta página você aprendeu:
+
+Como mover dados de componentes para estruturas de dados como arrays e objetos.
+Como gerar conjuntos de componentes semelhantes com JavaScript map().
+Como criar arrays de itens filtrados com JavaScript filter().
+Por que e como definir keyum atributo em cada componente de uma coleção para que o React possa rastreá-los mesmo que sua posição ou dados mudem.

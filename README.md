@@ -81,11 +81,11 @@ Testei o chatbot com perguntas sobre os documentos e uma pergunta fora do tema, 
 
 | # | Pergunta | Esperado | Resultado |
 |---|----------|----------|-----------|
-| 1 | Para que serve o useState? | Explicar estado em componentes, citando `usestate.txt` |  O `useState` serve para declarar uma ou mais variáveis de estado no nível superior do seu componente. Ele fornece o estado atual e uma função `set` que permite atualizar esse estado para um valor diferente e acionar uma nova renderização para atualizar a interface do usuário. |
-| 2 | Quando devo usar o useEffect? | Explicar sincronização com sistemas externos | Você deve usar o `useEffect` no nível superior do seu componente para declarar um efeito e para conectar seu componente a um sistema externo (como a rede, uma API do navegador ou uma biblioteca de terceiros). |
-| 3 | Por que preciso usar `key` em listas? | Explicar identificação dos itens pelo React | As chaves informam ao React a qual item do array cada componente corresponde, permitindo identificá-los de forma única entre seus irmãos. Isso ajuda o React a associá-los e inferir exatamente o que aconteceu (como movimentação, inserção ou exclusão) para fazer as atualizações corretas na árvore DOM. |
-| 4 | Como passo um valor padrão para uma prop? | Mostrar a sintaxe `size = 100` na desestruturação | Você pode passar um valor padrão para uma prop usando a desestruturação, colocando `=` seguido do valor padrão logo após o parâmetro da função. |
-| 5 | Como faço um bolo de chocolate? | Dizer que não encontrou na documentação | Não encontrei essa informação na documentação. |
+| 1 | Para que serve o useState? | Explicar estado em componentes, citando `usestate.txt` | ✅ Resposta correta, com a fonte certa |
+| 2 | Quando devo usar o useEffect? | Explicar sincronização com sistemas externos |⚠️ Parcial: acertou o uso com sistemas externos, mas não mencionou dependências |
+| 3 | Por que preciso usar `key` em listas? | Explicar identificação dos itens pelo React | ✅ Resposta correta; a lista de fontes incluiu um arquivo sem relação (usestate.txt) |
+| 4 | Como passo um valor padrão para uma prop? | Mostrar a sintaxe `size = 100` na desestruturação | ✅ Correto, com exemplo de código|
+| 5 | Como faço um bolo de chocolate? | Dizer que não encontrou na documentação | ✅ Recusou corretamente; as fontes listadas são só os trechos mais próximos, não usados na resposta |
 
 ## ⚠️ Limitações
 
@@ -95,6 +95,7 @@ Testei o chatbot com perguntas sobre os documentos e uma pergunta fora do tema, 
 - O plano gratuito da API limita as chamadas por minuto. Durante os testes houve erros `429` (limite de uso) e `503` (alta demanda no modelo); por isso o código espera e tenta de novo, e pode alternar entre modelos disponíveis.
 - A qualidade da resposta depende dos trechos recuperados: se a busca trouxer trechos pouco relevantes, a resposta também será fraca.
 - A interface é apenas o terminal.
+- O campo “Fontes” mostra os trechos recuperados pela busca, e não necessariamente os que o modelo usou, então pode listar arquivos pouco relacionados com a pergunta.
 
 ## 🚀 Próximos passos
 
